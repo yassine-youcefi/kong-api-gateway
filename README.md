@@ -33,6 +33,8 @@ This project provides a ready-to-use setup for running Kong API Gateway (OSS) wi
    ```sh
    docker compose up -d
    ```
+4. **[Optional/Advanced] Customize Konga UI:**
+   - If you want to customize the Konga UI (branding, layout, etc.), you must fork the [Konga repository](https://github.com/pantsel/konga), make your changes, build your own Docker image, and update the `docker-compose.yaml` to use your custom image.
 
 ### Access
 
