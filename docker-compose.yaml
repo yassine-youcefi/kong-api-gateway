@@ -16,6 +16,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - microservices-network
 
   kong-migrations:
     image: kong:latest
@@ -29,6 +31,8 @@ services:
     depends_on:
       kong-database:
         condition: service_healthy
+    networks:
+      - microservices-network
 
   kong:
     image: kong:latest
@@ -52,6 +56,8 @@ services:
     depends_on:
       kong-migrations:
         condition: service_completed_successfully
+    networks:
+      - microservices-network
 
   konga:
     image: pantsel/konga:latest
@@ -62,8 +68,17 @@ services:
       - NODE_ENV=production
     ports:
       - "1337:1337" # Konga Web UI
+    volumes:
+      - konga_sqlite_data:/app/database
     depends_on:
       - kong
+    networks:
+      - microservices-network
 
 volumes:
   kong_data:
+  konga_sqlite_data:
+
+networks:
+  microservices-network:
+    driver: bridge
