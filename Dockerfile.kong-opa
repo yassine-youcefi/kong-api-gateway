@@ -1,0 +1,12 @@
+# Custom Kong image with kong-opa plugin
+FROM kong:latest
+
+USER root
+
+# Install git, build-essential, and wget for luarocks
+RUN apt-get update && apt-get install -y git build-essential wget
+
+# Install kong-opa plugin
+RUN luarocks install kong-opa --server=https://luarocks.org/dev
+
+USER kong

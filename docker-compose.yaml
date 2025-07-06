@@ -35,7 +35,10 @@ services:
       - microservices-network
 
   kong:
-    image: kong:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.kong-opa
+    image: kong-custom-opa:latest
     container_name: kong
     restart: always
     environment:
@@ -61,6 +64,17 @@ services:
     depends_on:
       kong-migrations:
         condition: service_completed_successfully
+    networks:
+      - microservices-network
+
+  opa:
+    image: openpolicyagent/opa:latest
+    container_name: opa
+    command: ["run", "--server", "--addr", "0.0.0.0:8181", "/policies"]
+    volumes:
+      - ./opa/policies:/policies:ro
+    ports:
+      - "8181:8181"
     networks:
       - microservices-network
 
