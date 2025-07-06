@@ -1,0 +1,11 @@
+# Ignore environment files
+.env
+.rnv
+# Ignore Docker volumes
+kong_data/
+# Ignore OS files
+.DS_Store
+# Ignore logs
+*.log
+# Ignore node_modules if you add JS tooling
+node_modules/

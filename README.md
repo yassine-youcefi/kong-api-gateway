@@ -1,4 +1,4 @@
-Kong API Gateway with Docker Compose
+# Kong API Gateway with Docker Compose
 
 This project provides a ready-to-use setup for running Kong API Gateway (OSS) with a Postgres database using Docker Compose. It is designed for local development, testing, and learning about API gateway patterns.
 
@@ -6,7 +6,7 @@ This project provides a ready-to-use setup for running Kong API Gateway (OSS) wi
 
 - Kong Gateway (Open Source) with all bundled plugins
 - Postgres 16 as Kong's database
-- Environment variables managed via `.env` file
+- Environment variables managed via `.env` file (see `.env.example` for a template)
 - Easy to extend with community GUIs (e.g., Konga)
 - Pre-configured for local development
 
@@ -24,7 +24,11 @@ This project provides a ready-to-use setup for running Kong API Gateway (OSS) wi
    git clone <your-repo-url>
    cd kong-api-gateway
    ```
-2. Copy or edit the `.env` file to adjust credentials and settings as needed.
+2. Copy the example environment file and edit as needed:
+   ```sh
+   cp .env.example .env
+   # Edit .env to set your credentials and settings
+   ```
 3. Start the stack:
    ```sh
    docker compose up -d
@@ -39,16 +43,16 @@ This project provides a ready-to-use setup for running Kong API Gateway (OSS) wi
 
 ## Environment Variables
 
-All configuration is managed in the `.env` file. Example:
+All configuration is managed in the `.env` file. See `.env.example` for a template. Example:
 
 ```
 POSTGRES_USER=kong
 POSTGRES_DB=kong
-POSTGRES_PASSWORD=kong_password
+POSTGRES_PASSWORD=changeme
 KONG_DATABASE=postgres
 KONG_PG_HOST=kong-database
 KONG_PG_USER=kong
-KONG_PG_PASSWORD=kong_password
+KONG_PG_PASSWORD=changeme
 KONG_PROXY_ACCESS_LOG=/dev/stdout
 KONG_ADMIN_ACCESS_LOG=/dev/stdout
 KONG_PROXY_ERROR_LOG=/dev/stderr
@@ -67,14 +71,10 @@ KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl
 - To add a GUI, add a Konga service to `docker-compose.yaml`.
 - To add plugins, configure them via the Admin API or with declarative config.
 
+## .gitignore
+
+Sensitive files like `.env` and `.rnv` are git-ignored by default. Share only `.env.example` for safe configuration.
+
 ## License
 
 This project is provided for educational and development use. See [Kong Gateway OSS License](https://github.com/Kong/kong/blob/master/LICENSE) for details.
-
->>>>>>> ebce82d (Initial project setup: Kong API Gateway with Docker Compose)
->>>>>>>
->>>>>>
->>>>>
->>>>
->>>
->>
