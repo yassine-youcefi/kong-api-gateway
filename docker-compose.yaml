@@ -47,17 +47,17 @@ services:
       KONG_ADMIN_ACCESS_LOG: ${KONG_ADMIN_ACCESS_LOG}
       KONG_PROXY_ERROR_LOG: ${KONG_PROXY_ERROR_LOG}
       KONG_ADMIN_ERROR_LOG: ${KONG_ADMIN_ERROR_LOG}
-      KONG_ADMIN_LISTEN: ${KONG_ADMIN_LISTEN}
-      KONG_ADMIN_GUI_LISTEN: 0.0.0.0:8002
+      KONG_ADMIN_LISTEN: 0.0.0.0:9001, 0.0.0.0:9444 ssl
+      KONG_ADMIN_GUI_LISTEN: 0.0.0.0:9002
       KONG_ADMIN_GUI_AUTH: basic
       KONG_ADMIN_GUI_SESSION_CONF: '{"secret":"changeme","cookie_secure":false}'
       KONG_ADMIN_GUI_SESSION_SECRET: changeme
     ports:
-      - "8888:8888/tcp" # Kong Proxy HTTP
+      - "8888:8000/tcp" # Kong Proxy HTTP (fixed)
       - "8443:8443/tcp" # Kong Proxy HTTPS
-      - "8001:8001/tcp" # Kong Admin API HTTP
-      - "8444:8444/tcp" # Kong Admin API HTTPS
-      - "8002:8002/tcp" # Kong Manager OSS
+      - "9001:9001/tcp" # Kong Admin API HTTP
+      - "9444:9444/tcp" # Kong Admin API HTTPS
+      - "9002:9002/tcp" # Kong Manager OSS
     depends_on:
       kong-migrations:
         condition: service_completed_successfully
@@ -70,4 +70,4 @@ volumes:
 
 networks:
   microservices-network:
-    driver: bridge
+    external: true

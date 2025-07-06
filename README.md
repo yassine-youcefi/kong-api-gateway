@@ -1,24 +1,45 @@
+<p align="center">
+  <img src="https://images.seeklogo.com/logo-png/39/1/kong-logo-png_seeklogo-394595.png" alt="Kong Logo" height="60"/>
+  &nbsp;&nbsp;&nbsp;
+  <img src="https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png" alt="Docker Logo" height="60"/>
+</p>
+
 # Kong API Gateway with Docker Compose
 
-This project provides a ready-to-use setup for running Kong API Gateway (OSS) with a Postgres database using Docker Compose. It is designed for local development, testing, and learning about API gateway patterns.
+A modern, local development environment for Kong API Gateway (OSS) with Postgres and Kong Manager OSS UI. Easily manage, secure, and route traffic to your microservices.
+
+---
 
 ## Features
-
-- Kong Gateway (Open Source) with all bundled plugins
+- Kong Gateway OSS with all bundled plugins
 - Postgres 16 as Kong's database
-- Kong Manager OSS (official UI) enabled on port 8002
-- Environment variables managed via `.env` file (see `.env.example` for a template)
-- Pre-configured for local development
+- Kong Manager OSS (UI) on port 9002
+- Environment variables via `.env` (see `.env.example`)
+- Custom Docker network for microservices
+- Secure, persistent configuration
+
+---
+
+## Table of Contents
+- [Getting Started](#getting-started)
+- [Accessing Kong Services](#accessing-kong-services)
+- [How Kong Proxy Works](#how-kong-proxy-works)
+- [Creating Services and Routes](#creating-services-and-routes)
+- [Testing Your Integration](#testing-your-integration)
+- [Environment Variables](#environment-variables)
+- [Useful Commands](#useful-commands)
+- [Extending](#extending)
+- [License](#license)
+
+---
 
 ## Getting Started
 
 ### Prerequisites
-
 - [Docker](https://www.docker.com/products/docker-desktop)
 - [Docker Compose](https://docs.docker.com/compose/)
 
 ### Setup
-
 1. Clone this repository:
    ```sh
    git clone <your-repo-url>
@@ -34,22 +55,81 @@ This project provides a ready-to-use setup for running Kong API Gateway (OSS) wi
    docker compose up -d
    ```
 
-### Access
+---
 
-- **Kong Proxy:** http://localhost:8000
-- **Kong Admin API:** http://localhost:8001
-- **Kong Manager OSS:** http://localhost:8002
+## Accessing Kong Services
+- **Kong Proxy:** http://localhost:8888
+- **Kong Admin API:** http://localhost:9001
+- **Kong Manager OSS (UI):** http://localhost:9002
 
-## Kong Manager OSS Setup
+Kong Manager OSS is enabled by default on port 9002 with basic authentication.
 
-- Kong Manager OSS is enabled by default on port 8002.
-- Authentication is enabled (basic auth). You will be prompted for credentials on first access.
-- For more info, see the [Kong Manager OSS repo](https://github.com/Kong/kong-manager).
+---
+
+## How Kong Proxy Works
+When a user sends a request to `http://localhost:8888/<route-path>`, the following happens:
+1. Kong receives the request on port 8888 (host), mapped to port 8000 inside the Kong container.
+2. Kong matches the request to a configured **Route**.
+3. Kong forwards the request to the associated **Service** (your microservice), using the internal Docker network.
+4. Kong returns the response from your service to the client.
+
+**Note:**
+- Kong does not expose your microservice directly to the host. All traffic goes through Kong for routing, security, and plugins.
+- By default, Kong removes the route path prefix before proxying (`strip_path: true`). Set `strip_path: false` if your service expects the full path.
+
+---
+
+## Creating Services and Routes
+You can create services and routes via Kong Manager OSS (UI) or the Admin API.
+
+### Using Kong Manager OSS (UI)
+1. Go to http://localhost:9002 and log in.
+2. **Create a Service:**
+   - Name: e.g. `django-api-gateway`
+   - Host: `<your-service-container-name>` (e.g. `django-api-gateway-microservice`)
+   - Port: `<your-service-port>` (e.g. `8000`)
+   - Protocol: `http`
+3. **Create a Route:**
+   - Name: e.g. `user-details`
+   - Paths: `/user/details/`
+   - Methods: `GET` (or as needed)
+   - (Optional) Set `strip_path: false` if your service expects the full path.
+   - Link the route to your service.
+
+### Using the Admin API
+Example (replace values as needed):
+```sh
+# Create a service
+curl -i -X POST http://localhost:9001/services \
+  --data 'name=django-api-gateway' \
+  --data 'url=http://django-api-gateway-microservice:8000'
+
+# Create a route
+curl -i -X POST http://localhost:9001/services/django-api-gateway/routes \
+  --data 'paths[]=/user/details/' \
+  --data 'methods[]=GET' \
+  --data 'strip_path=false'
+```
+
+---
+
+## Testing Your Integration
+To test your microservice through Kong, always send requests to the Kong Proxy port (default: **8888**), not directly to your service.
+
+**Example:**
+```sh
+curl -i http://localhost:8888/user/details/ -H "Authorization: Bearer <your_token>"
+```
+- Replace `/user/details/` and the header as needed.
+- If your route requires headers or authentication, add them to your request.
+- You can also use Postman or your browser for GET requests.
+
+**Do not use your service's internal Docker port directly. Always go through Kong's proxy port.**
+
+---
 
 ## Environment Variables
-
 All configuration is managed in the `.env` file. See `.env.example` for a template. Example:
-
 ```
 POSTGRES_USER=kong
 POSTGRES_DB=kong
@@ -62,27 +142,26 @@ KONG_PROXY_ACCESS_LOG=/dev/stdout
 KONG_ADMIN_ACCESS_LOG=/dev/stdout
 KONG_PROXY_ERROR_LOG=/dev/stderr
 KONG_ADMIN_ERROR_LOG=/dev/stderr
-KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl
-KONG_ADMIN_GUI_LISTEN=0.0.0.0:8002
+KONG_ADMIN_LISTEN=0.0.0.0:9001, 0.0.0.0:9444 ssl
+KONG_ADMIN_GUI_LISTEN=0.0.0.0:9002
 KONG_ADMIN_GUI_AUTH=basic
 KONG_ADMIN_GUI_SESSION_CONF={"secret":"changeme","cookie_secure":false}
 KONG_ADMIN_GUI_SESSION_SECRET=changeme
 ```
 
-## Useful Commands
+---
 
+## Useful Commands
 - Start: `docker compose up -d`
 - Stop: `docker compose down`
 - View logs: `docker compose logs -f kong`
 
-## Extending
+---
 
+## Extending
 - To add plugins, configure them via the Admin API, Kong Manager, or with declarative config.
 
-## .gitignore
-
-Sensitive files like `.env` and `.rnv` are git-ignored by default. Share only `.env.example` for safe configuration.
+---
 
 ## License
-
 This project is provided for educational and development use. See [Kong Gateway OSS License](https://github.com/Kong/kong/blob/master/LICENSE) for details.
