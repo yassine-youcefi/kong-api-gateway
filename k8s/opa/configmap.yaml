@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-policy
+  namespace: kong
+  labels:
+    app: opa
+  annotations:
+    description: "OPA Rego policy for Kong authz"
+data:
+  api-authz.rego: |
+    # Paste your Rego policy here or mount as a volume
