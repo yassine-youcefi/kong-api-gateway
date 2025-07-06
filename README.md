@@ -295,6 +295,28 @@ When you want to expose a new API endpoint through Kong and restrict it to a spe
 
 ---
 
+## Note: Community Plugins and Kong Manager UI
+
+- Community plugins like `kong-opa` (OPA integration) are not bundled with Kong OSS by default and may not appear in the Kong Manager UI, even if installed in your custom image.
+- **Kong Manager UI only lists plugins that are marked as "visible" and "supported" in its metadata.**
+- Community plugins often do not include the UI components or metadata needed for the Manager UI.
+- **How to enable and configure the kong-opa plugin:**
+  - Use the Admin API (curl, httpie, Postman, etc.), not the UI.
+  - Example:
+    ```sh
+    curl -i -X POST http://localhost:9001/services/<service-name>/plugins \
+      --data "name=opa" \
+      --data "config.opa_url=http://opa:8181/v1/data/kong/authz/allow" \
+      --data "config.input_path=parsed_jwt"
+    ```
+  - You can check if the plugin is installed with:
+    ```sh
+    curl http://localhost:9001/plugins/enabled
+    ```
+  - The plugin will work as expected if installed and configured via the API, even if it does not show up in the UI.
+
+---
+
 # 🚀 Managing Kong and OPA Configuration at Scale (Best Practices)
 
 > **For large teams and production environments, follow these proven methods to ensure safe, scalable, and auditable API gateway management.**

@@ -1,0 +1,61 @@
+name: Kong & OPA CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-opa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Lint OPA policies
+        run: |
+          docker run --rm -v ${{ github.workspace }}/opa/policies:/policies openpolicyagent/opa:latest check /policies
+
+  test-opa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test OPA policies (optional)
+        run: |
+          # Add OPA unit tests here if you have them
+          echo "OPA tests go here"
+
+  build-and-push-kong:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Kong image
+        run: docker build -t myorg/kong-custom-opa:latest -f Dockerfile.kong-opa .
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Push Kong image
+        run: docker push myorg/kong-custom-opa:latest
+
+  deploy:
+    needs: [lint-opa, test-opa, build-and-push-kong]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install decK
+        run: |
+          curl -sL https://github.com/kong/deck/releases/latest/download/deck_$(uname -s)_$(uname -m).tar.gz | tar xz -C /usr/local/bin deck
+      - name: Sync Kong config (decK example)
+        run: |
+          deck sync --kong-addr http://$KONG_ADMIN_API_URL
+        env:
+          KONG_ADMIN_API_URL: ${{ secrets.KONG_ADMIN_API_URL }}
+      - name: Deploy OPA policies (example using scp)
+        run: |
+          scp -o StrictHostKeyChecking=no -i ${{ secrets.OPA_DEPLOY_KEY }} opa/policies/api-authz.rego user@opa-server:/path/to/policies/
+      - name: Reload OPA (optional, if not auto-reloading)
+        run: |
+          ssh -i ${{ secrets.OPA_DEPLOY_KEY }} user@opa-server 'docker restart opa'
