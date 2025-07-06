@@ -6,8 +6,8 @@ This project provides a ready-to-use setup for running Kong API Gateway (OSS) wi
 
 - Kong Gateway (Open Source) with all bundled plugins
 - Postgres 16 as Kong's database
+- Konga GUI for managing Kong via a web interface
 - Environment variables managed via `.env` file (see `.env.example` for a template)
-- Easy to extend with community GUIs (e.g., Konga)
 - Pre-configured for local development
 
 ## Getting Started
@@ -38,8 +38,17 @@ This project provides a ready-to-use setup for running Kong API Gateway (OSS) wi
 
 - **Kong Proxy:** http://localhost:8000
 - **Kong Admin API:** http://localhost:8001
+- **Konga GUI:** http://localhost:1337
 
-> Note: Kong Manager (GUI) is only available in Kong Enterprise. For a GUI with Kong OSS, consider adding [Konga](https://pantsel.github.io/konga/).
+## Using Konga
+
+1. Open [http://localhost:1337](http://localhost:1337) in your browser.
+2. Register an admin user for Konga (first time only).
+3. Add a new connection:
+   - Name: Any name (e.g., `local-kong`)
+   - Kong Admin URL: `http://kong:8001` (from Konga's perspective inside Docker)
+   - Choose Kong version (auto-detect or select your version)
+4. Use the Konga dashboard to manage Kong services, routes, and plugins.
 
 ## Environment Variables
 
@@ -68,8 +77,8 @@ KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl
 
 ## Extending
 
-- To add a GUI, add a Konga service to `docker-compose.yaml`.
-- To add plugins, configure them via the Admin API or with declarative config.
+- To add more GUIs or tools, add them as services in `docker-compose.yaml`.
+- To add plugins, configure them via the Admin API, Konga, or with declarative config.
 
 ## .gitignore
 
