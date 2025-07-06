@@ -48,30 +48,19 @@ services:
       KONG_PROXY_ERROR_LOG: ${KONG_PROXY_ERROR_LOG}
       KONG_ADMIN_ERROR_LOG: ${KONG_ADMIN_ERROR_LOG}
       KONG_ADMIN_LISTEN: ${KONG_ADMIN_LISTEN}
+      KONG_ADMIN_GUI_LISTEN: 0.0.0.0:8002
+      KONG_ADMIN_GUI_AUTH: basic
+      KONG_ADMIN_GUI_SESSION_CONF: '{"secret":"changeme","cookie_secure":false}'
+      KONG_ADMIN_GUI_SESSION_SECRET: changeme
     ports:
-      - "8000:8000/tcp" # Kong Proxy HTTP
+      - "8888:8888/tcp" # Kong Proxy HTTP
       - "8443:8443/tcp" # Kong Proxy HTTPS
       - "8001:8001/tcp" # Kong Admin API HTTP
       - "8444:8444/tcp" # Kong Admin API HTTPS
+      - "8002:8002/tcp" # Kong Manager OSS
     depends_on:
       kong-migrations:
         condition: service_completed_successfully
-    networks:
-      - microservices-network
-
-  konga:
-    image: pantsel/konga:latest
-    platform: linux/amd64
-    container_name: konga
-    restart: always
-    environment:
-      - NODE_ENV=production
-    ports:
-      - "1337:1337" # Konga Web UI
-    volumes:
-      - konga_sqlite_data:/app/database
-    depends_on:
-      - kong
     networks:
       - microservices-network
 

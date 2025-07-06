@@ -6,7 +6,7 @@ This project provides a ready-to-use setup for running Kong API Gateway (OSS) wi
 
 - Kong Gateway (Open Source) with all bundled plugins
 - Postgres 16 as Kong's database
-- Konga GUI for managing Kong via a web interface
+- Kong Manager OSS (official UI) enabled on port 8002
 - Environment variables managed via `.env` file (see `.env.example` for a template)
 - Pre-configured for local development
 
@@ -33,24 +33,18 @@ This project provides a ready-to-use setup for running Kong API Gateway (OSS) wi
    ```sh
    docker compose up -d
    ```
-4. **[Optional/Advanced] Customize Konga UI:**
-   - If you want to customize the Konga UI (branding, layout, etc.), you must fork the [Konga repository](https://github.com/pantsel/konga), make your changes, build your own Docker image, and update the `docker-compose.yaml` to use your custom image.
 
 ### Access
 
 - **Kong Proxy:** http://localhost:8000
 - **Kong Admin API:** http://localhost:8001
-- **Konga GUI:** http://localhost:1337
+- **Kong Manager OSS:** http://localhost:8002
 
-## Using Konga
+## Kong Manager OSS Setup
 
-1. Open [http://localhost:1337](http://localhost:1337) in your browser.
-2. Register an admin user for Konga (first time only).
-3. Add a new connection:
-   - Name: Any name (e.g., `local-kong`)
-   - Kong Admin URL: `http://kong:8001` (from Konga's perspective inside Docker)
-   - Choose Kong version (auto-detect or select your version)
-4. Use the Konga dashboard to manage Kong services, routes, and plugins.
+- Kong Manager OSS is enabled by default on port 8002.
+- Authentication is enabled (basic auth). You will be prompted for credentials on first access.
+- For more info, see the [Kong Manager OSS repo](https://github.com/Kong/kong-manager).
 
 ## Environment Variables
 
@@ -69,6 +63,10 @@ KONG_ADMIN_ACCESS_LOG=/dev/stdout
 KONG_PROXY_ERROR_LOG=/dev/stderr
 KONG_ADMIN_ERROR_LOG=/dev/stderr
 KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl
+KONG_ADMIN_GUI_LISTEN=0.0.0.0:8002
+KONG_ADMIN_GUI_AUTH=basic
+KONG_ADMIN_GUI_SESSION_CONF={"secret":"changeme","cookie_secure":false}
+KONG_ADMIN_GUI_SESSION_SECRET=changeme
 ```
 
 ## Useful Commands
@@ -79,8 +77,7 @@ KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl
 
 ## Extending
 
-- To add more GUIs or tools, add them as services in `docker-compose.yaml`.
-- To add plugins, configure them via the Admin API, Konga, or with declarative config.
+- To add plugins, configure them via the Admin API, Kong Manager, or with declarative config.
 
 ## .gitignore
 
