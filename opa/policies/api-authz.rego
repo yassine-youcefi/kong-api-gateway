@@ -2,14 +2,10 @@ package kong.authz
 
 default allow = false
 
-# Example: allow if JWT contains a role of "agent" or "agency"
+# Allow /user/details/ only for agent and agency roles
 allow {
+    input.request.path == "/user/details/"
     some role
     input.parsed_jwt.payload.roles[_] == role
-    role == "agent"
-}
-allow {
-    some role
-    input.parsed_jwt.payload.roles[_] == role
-    role == "agency"
+    role == "agent" or role == "agency"
 }

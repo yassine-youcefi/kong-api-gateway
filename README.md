@@ -248,3 +248,83 @@ curl -i -X POST http://localhost:9001/routes/<route>/plugins \
 
 ---
 
+## Adding a New API Endpoint with Role-Based Access (Developer Guide)
+
+When you want to expose a new API endpoint through Kong and restrict it to a specific role (e.g., `account_manager`), follow these steps:
+
+### 1. Create the Service and Route in Kong
+- Use Kong Manager UI or the Admin API to add your backend service and define the route (e.g., `/account/manage`).
+
+### 2. Enable the JWT Plugin
+- Attach the JWT plugin to the service or route to require JWT authentication.
+
+### 3. Enable the kong-opa Plugin
+- Attach the kong-opa plugin to the route or service.
+- Configure it to call your OPA endpoint (e.g., `http://opa:8181/v1/data/kong/authz/allow`).
+
+### 4. Update the OPA Policy (Rego)
+- Edit the main Rego file (e.g., `api-authz.rego`) to add a rule for the new endpoint and role.
+- Example for allowing only the `account_manager` role to access `/account/manage`:
+  ```rego
+  package kong.authz
+
+  default allow = false
+
+  allow {
+    input.request.path == "/account/manage"
+    some role
+    input.parsed_jwt.payload.roles[_] == role
+    role == "account_manager"
+  }
+  ```
+- You do **not** need a separate Rego file for each endpoint; manage all rules in one file.
+- You do **not** need to predefine all roles—just reference them in your policy as needed.
+
+### 5. No Need to Rebuild Kong for New Routes
+- Adding new services, routes, or updating OPA policies does **not** require rebuilding or redeploying the Kong container.
+- Only rebuild Kong if you change the Kong image itself (e.g., add new plugins).
+
+### Summary Table
+| Action                                 | Rebuild Kong? | Edit Rego? | Predefine Roles? | New Rego File? |
+|-----------------------------------------|:-------------:|:----------:|:----------------:|:--------------:|
+| Add service/route/plugin                |      No       |   Maybe*   |       No         |      No        |
+| Add/change access rule for a route/role |      No       |   Yes      |       No         |      No        |
+| Add new plugin to Kong image            |     Yes       |    No      |       No         |      No        |
+
+\*Edit Rego if you want to enforce new access rules for the new route.
+
+---
+
+# 🚀 Managing Kong and OPA Configuration at Scale (Best Practices)
+
+> **For large teams and production environments, follow these proven methods to ensure safe, scalable, and auditable API gateway management.**
+
+## 1. Centralized, Version-Controlled Configuration
+- **Store all Kong and OPA config as code** in a central Git repository.
+- **Developers propose changes via pull/merge requests**—all changes are reviewed by the API/platform/security team before merging.
+- **Restrict write access to production config** to a small, trusted group.
+
+## 2. Kong in DB-Backed Mode (with Postgres)
+- **Run Kong with a Postgres database** for dynamic, scalable configuration.
+- **Apply changes using Kong’s Admin API** (never direct DB edits).
+- **Back up the Kong Postgres DB** regularly, especially before major changes.
+
+## 3. Automated CI/CD Pipeline
+- **Test and validate** new routes/services and OPA policies in dev.
+- **Export config changes** (e.g., with [decK](https://github.com/kong/deck)) or use scripts for reproducibility.
+- **Promote changes through environments** (dev → staging → prod) using CI/CD automation.
+- **Sync Rego files to OPA** and reload policies as part of the pipeline.
+
+## 4. Why This Approach?
+- 🛡️ **Prevents config drift and accidental misconfiguration**
+- 📝 **Ensures all changes are auditable and reviewed**
+- 🔄 **Enables safe, automated promotion of changes**
+- 📈 **Scales for large teams and complex systems**
+
+## 5. Recommended Tools
+- [decK](https://github.com/kong/deck): Declarative Kong config management (export/import/apply/diff)
+- [OPA CLI](https://www.openpolicyagent.org/docs/latest/#running-opa): Policy validation and testing
+- **CI/CD platforms:** GitHub Actions, GitLab CI, Jenkins, etc.
+
+---
+
