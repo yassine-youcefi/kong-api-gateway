@@ -59,3 +59,25 @@ jobs:
       - name: Reload OPA (optional, if not auto-reloading)
         run: |
           ssh -i ${{ secrets.OPA_DEPLOY_KEY }} user@opa-server 'docker restart opa'
+
+  deck-export:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: [deploy]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install decK
+        run: |
+          curl -sL https://github.com/kong/deck/releases/latest/download/deck_$(uname -s)_$(uname -m).tar.gz | tar xz -C /usr/local/bin deck
+      - name: Export Kong config after deployment
+        run: |
+          deck dump --kong-addr http://$KONG_ADMIN_API_URL > kong.yaml
+        env:
+          KONG_ADMIN_API_URL: ${{ secrets.KONG_ADMIN_API_URL }}
+      - name: Commit and push updated kong.yaml
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add kong.yaml || true
+          git commit -m "chore: update kong.yaml after deployment [skip ci]" || true
+          git push || true
