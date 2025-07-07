@@ -1,8 +1,9 @@
 <p align="center">
-  <img src="https://images.seeklogo.com/logo-png/39/1/kong-logo-png_seeklogo-394595.png" alt="Kong Logo" height="60"/>
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLU3uHzZrnXbWNj-hrXOAMph2rGzAM3bw6ZQ&s" alt="Kong Logo" height="60"/>
      
-  <img src="https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png" alt="Docker Logo" height="60"/>
+  <img src="https://img.icons8.com/?size=100&id=22813&format=png&color=000000" alt="Docker Logo" height="60"/>
 </p>
+
 
 # Kong API Gateway with Docker Compose
 
