@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://images.seeklogo.com/logo-png/39/1/kong-logo-png_seeklogo-394595.png" alt="Kong Logo" height="60"/>
-  &nbsp;&nbsp;&nbsp;
+     
   <img src="https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png" alt="Docker Logo" height="60"/>
 </p>
 
@@ -11,6 +11,7 @@ A modern, local development environment for Kong API Gateway (OSS) with Postgres
 ---
 
 ## Features
+
 - Kong Gateway OSS with all bundled plugins
 - Postgres 16 as Kong's database
 - Kong Manager OSS (UI) on port 9002
@@ -21,6 +22,7 @@ A modern, local development environment for Kong API Gateway (OSS) with Postgres
 ---
 
 ## Table of Contents
+
 - [Getting Started](#getting-started)
 - [Accessing Kong Services](#accessing-kong-services)
 - [How Kong Proxy Works](#how-kong-proxy-works)
@@ -30,7 +32,7 @@ A modern, local development environment for Kong API Gateway (OSS) with Postgres
 - [Useful Commands](#useful-commands)
 - [Extending](#extending)
 - [Kubernetes Deployment Guide](k8s/README.md)
-- [OPA Policy & Integration Guide](opa/README.md)
+- [OPA Policy &amp; Integration Guide](opa/README.md)
 - [License](#license)
 
 ---
@@ -38,10 +40,12 @@ A modern, local development environment for Kong API Gateway (OSS) with Postgres
 ## Getting Started
 
 ### Prerequisites
+
 - [Docker](https://www.docker.com/products/docker-desktop)
 - [Docker Compose](https://docs.docker.com/compose/)
 
 ### Setup
+
 1. Clone this repository:
    ```sh
    git clone <your-repo-url>
@@ -60,6 +64,7 @@ A modern, local development environment for Kong API Gateway (OSS) with Postgres
 ---
 
 ## Accessing Kong Services
+
 - **Kong Proxy:** http://localhost:8888
 - **Kong Admin API:** http://localhost:9001
 - **Kong Manager OSS (UI):** http://localhost:9002
@@ -69,22 +74,27 @@ Kong Manager OSS is enabled by default on port 9002 with basic authentication.
 ---
 
 ## How Kong Proxy Works
+
 When a user sends a request to `http://localhost:8888/<route-path>`, the following happens:
+
 1. Kong receives the request on port 8888 (host), mapped to port 8000 inside the Kong container.
 2. Kong matches the request to a configured **Route**.
 3. Kong forwards the request to the associated **Service** (your microservice), using the internal Docker network.
 4. Kong returns the response from your service to the client.
 
 **Note:**
+
 - Kong does not expose your microservice directly to the host. All traffic goes through Kong for routing, security, and plugins.
 - By default, Kong removes the route path prefix before proxying (`strip_path: true`). Set `strip_path: false` if your service expects the full path.
 
 ---
 
 ## Creating Services and Routes
+
 You can create services and routes via Kong Manager OSS (UI) or the Admin API.
 
 ### Using Kong Manager OSS (UI)
+
 1. Go to http://localhost:9002 and log in.
 2. **Create a Service:**
    - Name: e.g. `django-api-gateway`
@@ -99,7 +109,9 @@ You can create services and routes via Kong Manager OSS (UI) or the Admin API.
    - Link the route to your service.
 
 ### Using the Admin API
+
 Example (replace values as needed):
+
 ```sh
 # Create a service
 curl -i -X POST http://localhost:9001/services \
@@ -116,12 +128,15 @@ curl -i -X POST http://localhost:9001/services/django-api-gateway/routes \
 ---
 
 ## Testing Your Integration
+
 To test your microservice through Kong, always send requests to the Kong Proxy port (default: **8888**), not directly to your service.
 
 **Example:**
+
 ```sh
 curl -i http://localhost:8888/user/details/ -H "Authorization: Bearer <your_token>"
 ```
+
 - Replace `/user/details/` and the header as needed.
 - If your route requires headers or authentication, add them to your request.
 - You can also use Postman or your browser for GET requests.
@@ -131,7 +146,9 @@ curl -i http://localhost:8888/user/details/ -H "Authorization: Bearer <your_toke
 ---
 
 ## Environment Variables
+
 All configuration is managed in the `.env` file. See `.env.example` for a template. Example:
+
 ```
 POSTGRES_USER=kong
 POSTGRES_DB=kong
@@ -154,6 +171,7 @@ KONG_ADMIN_GUI_SESSION_SECRET=changeme
 ---
 
 ## Useful Commands
+
 - Start: `docker compose up -d`
 - Stop: `docker compose down`
 - View logs: `docker compose logs -f kong`
@@ -161,26 +179,30 @@ KONG_ADMIN_GUI_SESSION_SECRET=changeme
 ---
 
 ## Extending
+
 - To add plugins, configure them via the Admin API, Kong Manager, or with declarative config.
 
 ---
-
 
 ## Adding a New API Endpoint with Role-Based Access (Developer Guide)
 
 When you want to expose a new API endpoint through Kong and restrict it to a specific role (e.g., `account_manager`), follow these steps:
 
 ### 1. Create the Service and Route in Kong
+
 - Use Kong Manager UI or the Admin API to add your backend service and define the route (e.g., `/account/manage`).
 
 ### 2. Enable the JWT Plugin
+
 - Attach the JWT plugin to the service or route to require JWT authentication.
 
 ### 3. Enable the kong-opa Plugin
+
 - Attach the kong-opa plugin to the route or service.
 - Configure it to call your OPA endpoint (e.g., `http://opa:8181/v1/data/kong/authz/allow`).
 
 ### 4. Update the OPA Policy (Rego)
+
 - Edit the main Rego file (e.g., `api-authz.rego`) to add a rule for the new endpoint and role.
 - Example for allowing only the `account_manager` role to access `/account/manage`:
   ```rego
@@ -199,15 +221,17 @@ When you want to expose a new API endpoint through Kong and restrict it to a spe
 - You do **not** need to predefine all roles—just reference them in your policy as needed.
 
 ### 5. No Need to Rebuild Kong for New Routes
+
 - Adding new services, routes, or updating OPA policies does **not** require rebuilding or redeploying the Kong container.
 - Only rebuild Kong if you change the Kong image itself (e.g., add new plugins).
 
 ### Summary Table
-| Action                                 | Rebuild Kong? | Edit Rego? | Predefine Roles? | New Rego File? |
-|-----------------------------------------|:-------------:|:----------:|:----------------:|:--------------:|
-| Add service/route/plugin                |      No       |   Maybe*   |       No         |      No        |
-| Add/change access rule for a route/role |      No       |   Yes      |       No         |      No        |
-| Add new plugin to Kong image            |     Yes       |    No      |       No         |      No        |
+
+| Action                                  | Rebuild Kong? | Edit Rego? | Predefine Roles? | New Rego File? |
+| --------------------------------------- | :-----------: | :--------: | :--------------: | :------------: |
+| Add service/route/plugin                |      No      |   Maybe*   |        No        |       No       |
+| Add/change access rule for a route/role |      No      |    Yes    |        No        |       No       |
+| Add new plugin to Kong image            |      Yes      |     No     |        No        |       No       |
 
 \*Edit Rego if you want to enforce new access rules for the new route.
 
@@ -240,31 +264,35 @@ When you want to expose a new API endpoint through Kong and restrict it to a spe
 > **For large teams and production environments, follow these proven methods to ensure safe, scalable, and auditable API gateway management.**
 
 ## 1. Centralized, Version-Controlled Configuration
+
 - **Store all Kong and OPA config as code** in a central Git repository.
 - **Developers propose changes via pull/merge requests**—all changes are reviewed by the API/platform/security team before merging.
 - **Restrict write access to production config** to a small, trusted group.
 
 ## 2. Kong in DB-Backed Mode (with Postgres)
+
 - **Run Kong with a Postgres database** for dynamic, scalable configuration.
 - **Apply changes using Kong’s Admin API** (never direct DB edits).
 - **Back up the Kong Postgres DB** regularly, especially before major changes.
 
 ## 3. Automated CI/CD Pipeline
+
 - **Test and validate** new routes/services and OPA policies in dev.
 - **Export config changes** (e.g., with [decK](https://github.com/kong/deck)) or use scripts for reproducibility.
 - **Promote changes through environments** (dev → staging → prod) using CI/CD automation.
 - **Sync Rego files to OPA** and reload policies as part of the pipeline.
 
 ## 4. Why This Approach?
+
 - 🛡️ **Prevents config drift and accidental misconfiguration**
 - 📝 **Ensures all changes are auditable and reviewed**
 - 🔄 **Enables safe, automated promotion of changes**
 - 📈 **Scales for large teams and complex systems**
 
 ## 5. Recommended Tools
+
 - [decK](https://github.com/kong/deck): Declarative Kong config management (export/import/apply/diff)
 - [OPA CLI](https://www.openpolicyagent.org/docs/latest/#running-opa): Policy validation and testing
 - **CI/CD platforms:** GitHub Actions, GitLab CI, Jenkins, etc.
 
 ---
-
