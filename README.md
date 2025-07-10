@@ -98,8 +98,8 @@ You can create services and routes via Kong Manager OSS (UI) or the Admin API.
 
 1. Go to http://localhost:9002 and log in.
 2. **Create a Service:**
-   - Name: e.g. `django-api-gateway`
-   - Host: `<your-service-container-name>` (e.g. `django-api-gateway-microservice`)
+   - Name: e.g. `user-service`
+   - Host: `<your-service-container-name>` (e.g. `user-service`)
    - Port: `<your-service-port>` (e.g. `8000`)
    - Protocol: `http`
 3. **Create a Route:**
@@ -116,11 +116,11 @@ Example (replace values as needed):
 ```sh
 # Create a service
 curl -i -X POST http://localhost:9001/services \
-  --data 'name=django-api-gateway' \
-  --data 'url=http://django-api-gateway-microservice:8000'
+  --data 'name=user-service' \
+  --data 'url=http://user-service:8000'
 
 # Create a route
-curl -i -X POST http://localhost:9001/services/django-api-gateway/routes \
+curl -i -X POST http://localhost:9001/services/user-service/routes \
   --data 'paths[]=/user/details/' \
   --data 'methods[]=GET' \
   --data 'strip_path=false'
